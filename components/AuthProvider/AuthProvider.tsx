@@ -2,7 +2,7 @@
 
 import { ReactNode, useEffect, useState } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
-import { checkSession, getMe, logout } from '@/lib/api/clientApi';
+import { checkSession, logout } from '@/lib/api/clientApi';
 import { useAuthStore } from '@/lib/store/authStore';
 import type { User } from '@/types/user';
 
@@ -13,18 +13,25 @@ interface AuthProviderProps {
 const PRIVATE_ROUTES = ['/profile', '/notes'];
 const AUTH_ROUTES = ['/sign-in', '/sign-up'];
 
-function isUserPayload(payload: unknown): payload is User {
+function normalizeUserPayload(payload: unknown): User | null {
   if (!payload || typeof payload !== 'object') {
-    return false;
+    return null;
   }
 
   const value = payload as Partial<User>;
 
-  return (
-    typeof value.email === 'string' &&
-    typeof value.username === 'string' &&
-    typeof value.avatar === 'string'
-  );
+  if (typeof value.email !== 'string') {
+    return null;
+  }
+
+  return {
+    email: value.email,
+    username:
+      typeof value.username === 'string' && value.username.length > 0
+        ? value.username
+        : value.email.split('@')[0],
+    avatar: typeof value.avatar === 'string' ? value.avatar : '',
+  };
 }
 
 export default function AuthProvider({ children }: AuthProviderProps) {
@@ -55,36 +62,16 @@ export default function AuthProvider({ children }: AuthProviderProps) {
           return;
         }
 
-        if (isUserPayload(sessionData)) {
-          setUser(sessionData);
+        const normalizedUser = normalizeUserPayload(sessionData);
+
+        if (normalizedUser) {
+          setUser(normalizedUser);
 
           if (isAuthRoute) {
             router.replace('/profile');
           }
 
           return;
-        }
-
-        if (sessionData) {
-          try {
-            const me = await getMe();
-
-            if (isCancelled) {
-              return;
-            }
-
-            if (isUserPayload(me)) {
-              setUser(me);
-
-              if (isAuthRoute) {
-                router.replace('/profile');
-              }
-
-              return;
-            }
-          } catch {
-            // noop
-          }
         }
 
         clearIsAuthenticated();
