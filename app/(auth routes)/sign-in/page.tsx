@@ -3,6 +3,7 @@
 import { FormEvent, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useMutation } from '@tanstack/react-query';
+import { AxiosError } from 'axios';
 import { login } from '@/lib/api/clientApi';
 import { useAuthStore } from '@/lib/store/authStore';
 import css from './SignInPage.module.css';
@@ -18,7 +19,22 @@ export default function SignInPage() {
       setUser(user);
       router.push('/profile');
     },
-    onError: () => {
+    onError: error => {
+      if (error instanceof AxiosError) {
+        const apiMessage =
+          (error.response?.data as { error?: string; message?: string })
+            ?.message ??
+          (error.response?.data as { error?: string; message?: string })?.error;
+
+        if (error.response?.status === 409) {
+          setError(apiMessage ?? 'Invalid login state, try again');
+          return;
+        }
+
+        setError(apiMessage ?? 'Login failed');
+        return;
+      }
+
       setError('Login failed');
     },
   });

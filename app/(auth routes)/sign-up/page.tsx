@@ -3,6 +3,7 @@
 import { FormEvent, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useMutation } from '@tanstack/react-query';
+import { AxiosError } from 'axios';
 import { register } from '@/lib/api/clientApi';
 import { useAuthStore } from '@/lib/store/authStore';
 import css from './SignUpPage.module.css';
@@ -18,7 +19,22 @@ export default function SignUpPage() {
       setUser(user);
       router.push('/profile');
     },
-    onError: () => {
+    onError: error => {
+      if (error instanceof AxiosError) {
+        const apiMessage =
+          (error.response?.data as { error?: string; message?: string })
+            ?.message ??
+          (error.response?.data as { error?: string; message?: string })?.error;
+
+        if (error.response?.status === 409) {
+          setError(apiMessage ?? 'User with this email already exists');
+          return;
+        }
+
+        setError(apiMessage ?? 'Registration failed');
+        return;
+      }
+
       setError('Registration failed');
     },
   });
