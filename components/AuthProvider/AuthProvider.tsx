@@ -13,22 +13,18 @@ interface AuthProviderProps {
 const PRIVATE_ROUTES = ['/profile', '/notes'];
 const AUTH_ROUTES = ['/sign-in', '/sign-up'];
 
-function normalizeUserPayload(payload: unknown): User | null {
+function isUserPayload(payload: unknown): payload is User {
   if (!payload || typeof payload !== 'object') {
-    return null;
+    return false;
   }
 
   const value = payload as Partial<User>;
 
-  if (typeof value.email !== 'string') {
-    return null;
-  }
-
-  return {
-    email: value.email,
-    username: typeof value.username === 'string' ? value.username : '',
-    avatar: typeof value.avatar === 'string' ? value.avatar : '',
-  };
+  return (
+    typeof value.email === 'string' &&
+    typeof value.username === 'string' &&
+    typeof value.avatar === 'string'
+  );
 }
 
 export default function AuthProvider({ children }: AuthProviderProps) {
@@ -59,13 +55,11 @@ export default function AuthProvider({ children }: AuthProviderProps) {
           return;
         }
 
-        const sessionUser = normalizeUserPayload(sessionData);
-
-        if (sessionUser) {
-          setUser(sessionUser);
+        if (isUserPayload(sessionData)) {
+          setUser(sessionData);
 
           if (isAuthRoute) {
-            router.replace('/');
+            router.replace('/profile');
           }
 
           return;
@@ -79,13 +73,11 @@ export default function AuthProvider({ children }: AuthProviderProps) {
               return;
             }
 
-            const meUser = normalizeUserPayload(me);
-
-            if (meUser) {
-              setUser(meUser);
+            if (isUserPayload(me)) {
+              setUser(me);
 
               if (isAuthRoute) {
-                router.replace('/');
+                router.replace('/profile');
               }
 
               return;

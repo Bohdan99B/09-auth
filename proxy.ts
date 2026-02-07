@@ -12,10 +12,7 @@ function isUserPayload(payload: unknown): boolean {
     return false;
   }
 
-  const value = payload as {
-    email?: unknown;
-  };
-
+  const value = payload as { email?: unknown };
   return typeof value.email === 'string';
 }
 
@@ -29,9 +26,7 @@ async function hasValidSession(request: NextRequest): Promise<boolean> {
   try {
     const response = await fetch(`${request.nextUrl.origin}/api/auth/session`, {
       method: 'GET',
-      headers: {
-        cookie,
-      },
+      headers: { cookie },
       cache: 'no-store',
     });
 
@@ -48,20 +43,23 @@ async function hasValidSession(request: NextRequest): Promise<boolean> {
 
 export async function proxy(request: NextRequest) {
   const pathname = request.nextUrl.pathname;
+  const hasAccessToken = Boolean(request.cookies.get('accessToken')?.value);
+  const hasRefreshToken = Boolean(request.cookies.get('refreshToken')?.value);
+  const canAccessPrivate = hasAccessToken || hasRefreshToken;
 
   const isPrivateRoute = PRIVATE_ROUTES.some(route =>
     matchesRoute(pathname, route),
   );
   const isAuthRoute = AUTH_ROUTES.some(route => pathname === route);
 
-  if (isPrivateRoute || isAuthRoute) {
+  if (isPrivateRoute && !canAccessPrivate) {
+    return NextResponse.redirect(new URL('/sign-in', request.url));
+  }
+
+  if (isAuthRoute && hasAccessToken) {
     const authenticated = await hasValidSession(request);
 
-    if (isPrivateRoute && !authenticated) {
-      return NextResponse.redirect(new URL('/sign-in', request.url));
-    }
-
-    if (isAuthRoute && authenticated) {
+    if (authenticated) {
       return NextResponse.redirect(new URL('/profile', request.url));
     }
   }

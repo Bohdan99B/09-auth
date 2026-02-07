@@ -16,7 +16,7 @@ export default function SignInPage() {
     mutationFn: login,
     onSuccess: user => {
       setUser(user);
-      router.push('/');
+      router.push('/profile');
     },
     onError: () => {
       setError('Login failed');
