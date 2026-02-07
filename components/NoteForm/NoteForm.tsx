@@ -1,13 +1,13 @@
-"use client";
+'use client';
 
-import type { ChangeEvent } from "react";
-import { useCallback, useState } from "react";
-import { useRouter } from "next/navigation";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { createNote } from "@/lib/api";
-import { useNoteStore } from "@/lib/store/noteStore";
-import { NOTE_TAGS, type NoteDraft, type NoteTag } from "@/types/note";
-import css from "./NoteForm.module.css";
+import type { ChangeEvent } from 'react';
+import { useCallback, useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { createNote } from '@/lib/api/clientApi';
+import { useNoteStore } from '@/lib/store/noteStore';
+import { NOTE_TAGS, type NoteDraft, type NoteTag } from '@/types/note';
+import css from './NoteForm.module.css';
 
 type NoteFormErrors = Partial<Record<keyof NoteDraft, string>> & {
   form?: string;
@@ -19,19 +19,19 @@ function validateDraft(draft: NoteDraft): NoteFormErrors {
   const content = draft.content.trim();
 
   if (!title) {
-    errors.title = "Title is required";
+    errors.title = 'Title is required';
   } else if (title.length < 3) {
-    errors.title = "Title must be at least 3 characters";
+    errors.title = 'Title must be at least 3 characters';
   } else if (title.length > 50) {
-    errors.title = "Title must be at most 50 characters";
+    errors.title = 'Title must be at most 50 characters';
   }
 
   if (content.length > 500) {
-    errors.content = "Content must be at most 500 characters";
+    errors.content = 'Content must be at most 500 characters';
   }
 
   if (!NOTE_TAGS.includes(draft.tag)) {
-    errors.tag = "Tag is required";
+    errors.tag = 'Tag is required';
   }
 
   return errors;
@@ -40,41 +40,43 @@ function validateDraft(draft: NoteDraft): NoteFormErrors {
 export default function NoteForm() {
   const router = useRouter();
   const queryClient = useQueryClient();
-  const draft = useNoteStore((state) => state.draft);
-  const setDraft = useNoteStore((state) => state.setDraft);
-  const clearDraft = useNoteStore((state) => state.clearDraft);
+  const draft = useNoteStore(state => state.draft);
+  const setDraft = useNoteStore(state => state.setDraft);
+  const clearDraft = useNoteStore(state => state.clearDraft);
   const [errors, setErrors] = useState<NoteFormErrors>({});
 
   const mutation = useMutation({
     mutationFn: createNote,
     onSuccess: async () => {
-      await queryClient.invalidateQueries({ queryKey: ["notes"] });
+      await queryClient.invalidateQueries({ queryKey: ['notes'] });
     },
   });
 
   const handleFieldChange = (
-    event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
+    event: ChangeEvent<
+      HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
+    >,
   ) => {
     const field = event.target.name as keyof NoteDraft;
 
-    if (!["title", "content", "tag"].includes(field)) {
+    if (!['title', 'content', 'tag'].includes(field)) {
       return;
     }
 
-    if (field === "tag" && !NOTE_TAGS.includes(event.target.value as NoteTag)) {
+    if (field === 'tag' && !NOTE_TAGS.includes(event.target.value as NoteTag)) {
       return;
     }
 
     setDraft({ [field]: event.target.value } as Partial<NoteDraft>);
-    setErrors((prev) => ({ ...prev, [field]: undefined, form: undefined }));
+    setErrors(prev => ({ ...prev, [field]: undefined, form: undefined }));
   };
 
   const submitAction = useCallback(
     async (formData: FormData) => {
       const nextDraft: NoteDraft = {
-        title: String(formData.get("title") ?? ""),
-        content: String(formData.get("content") ?? ""),
-        tag: String(formData.get("tag") ?? "Todo") as NoteTag,
+        title: String(formData.get('title') ?? ''),
+        content: String(formData.get('content') ?? ''),
+        tag: String(formData.get('tag') ?? 'Todo') as NoteTag,
       };
 
       const validationErrors = validateDraft(nextDraft);
@@ -92,13 +94,11 @@ export default function NoteForm() {
       } catch (error) {
         setErrors({
           form:
-            error instanceof Error
-              ? error.message
-              : "Could not create a note",
+            error instanceof Error ? error.message : 'Could not create a note',
         });
       }
     },
-    [clearDraft, mutation, router]
+    [clearDraft, mutation, router],
   );
 
   return (
@@ -138,7 +138,7 @@ export default function NoteForm() {
           value={draft.tag}
           onChange={handleFieldChange}
         >
-          {NOTE_TAGS.map((tag) => (
+          {NOTE_TAGS.map(tag => (
             <option key={tag} value={tag}>
               {tag}
             </option>
@@ -160,7 +160,7 @@ export default function NoteForm() {
           className={css.submitButton}
           disabled={mutation.isPending}
         >
-          {mutation.isPending ? "Creating..." : "Create note"}
+          {mutation.isPending ? 'Creating...' : 'Create note'}
         </button>
       </div>
 

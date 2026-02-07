@@ -1,8 +1,8 @@
-"use client";
+'use client';
 
-import { ReactNode, useState } from "react";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
+import { ReactNode, useState } from 'react';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 
 interface TanStackProviderProps {
   children: ReactNode;
@@ -17,7 +17,7 @@ export default function TanStackProvider({ children }: TanStackProviderProps) {
             staleTime: 1000 * 30,
           },
         },
-      })
+      }),
   );
 
   return (

@@ -1,6 +1,6 @@
-"use client";
+'use client';
 
-import css from "./SearchBox.module.css";
+import css from './SearchBox.module.css';
 
 interface SearchBoxProps {
   value: string;
@@ -12,7 +12,7 @@ export default function SearchBox({ value, onChange }: SearchBoxProps) {
     <input
       className={css.input}
       value={value}
-      onChange={(e) => onChange(e.target.value)}
+      onChange={e => onChange(e.target.value)}
       placeholder="Search notes..."
     />
   );

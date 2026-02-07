@@ -1,7 +1,7 @@
-"use client";
+'use client';
 
-import { useParams } from "next/navigation";
-import NotePreview from "@/components/NotePreview/NotePreview";
+import { useParams } from 'next/navigation';
+import NotePreview from '@/components/NotePreview/NotePreview';
 
 export default function NotePreviewClient() {
   const params = useParams();
