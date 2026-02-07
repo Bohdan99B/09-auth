@@ -65,24 +65,26 @@ export default function AuthProvider({ children }: AuthProviderProps) {
           return;
         }
 
-        try {
-          const me = await getMe();
+        if (sessionData) {
+          try {
+            const me = await getMe();
 
-          if (isCancelled) {
-            return;
-          }
-
-          if (isUserPayload(me)) {
-            setUser(me);
-
-            if (isAuthRoute) {
-              router.replace('/profile');
+            if (isCancelled) {
+              return;
             }
 
-            return;
+            if (isUserPayload(me)) {
+              setUser(me);
+
+              if (isAuthRoute) {
+                router.replace('/profile');
+              }
+
+              return;
+            }
+          } catch {
+            // noop
           }
-        } catch {
-          // noop
         }
 
         clearIsAuthenticated();
