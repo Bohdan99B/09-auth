@@ -16,3 +16,11 @@ export interface Note {
   createdAt: string;
   updatedAt: string;
 }
+
+export interface NewNote {
+  title: string;
+  content: string;
+  tag: NoteTag;
+}
+
+export interface NoteDraft extends NewNote {}

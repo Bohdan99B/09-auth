@@ -1,4 +1,5 @@
 import { dehydrate, HydrationBoundary } from "@tanstack/react-query";
+import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { fetchNotes } from "@/lib/api";
 import { getQueryClient } from "@/lib/queryClient";
@@ -25,6 +26,35 @@ function resolveTag(slug: string[]): NoteTag | undefined {
   }
 
   return rawTag as NoteTag;
+}
+
+export async function generateMetadata({
+  params,
+}: FilterNotesPageProps): Promise<Metadata> {
+  const { slug } = await params;
+  const tag = resolveTag(slug);
+  const filterLabel = tag ?? "all";
+
+  return {
+    title: `Notes: ${filterLabel} | NoteHub`,
+    description: `Browse NoteHub notes filtered by: ${filterLabel}.`,
+    alternates: {
+      canonical: `/notes/filter/${encodeURIComponent(filterLabel)}`,
+    },
+    openGraph: {
+      title: `Notes: ${filterLabel} | NoteHub`,
+      description: `Browse NoteHub notes filtered by: ${filterLabel}.`,
+      url: `/notes/filter/${encodeURIComponent(filterLabel)}`,
+      images: [
+        {
+          url: "https://ac.goit.global/fullstack/react/notehub-og-meta.jpg",
+          width: 1200,
+          height: 630,
+          alt: "NoteHub notes filter page",
+        },
+      ],
+    },
+  };
 }
 
 export default async function FilterNotesPage({ params }: FilterNotesPageProps) {

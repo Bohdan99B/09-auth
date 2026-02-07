@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useState } from "react";
 import { useDebouncedCallback } from "use-debounce";
 import { useQuery } from "@tanstack/react-query";
@@ -7,8 +8,6 @@ import { fetchNotes } from "@/lib/api";
 import SearchBox from "@/components/SearchBox/SearchBox";
 import NoteList from "@/components/NoteList/NoteList";
 import Pagination from "@/components/Pagination/Pagination";
-import Modal from "@/components/Modal/Modal";
-import NoteForm from "@/components/NoteForm/NoteForm";
 import type { NoteTag } from "@/types/note";
 import css from "../../NotesPage.module.css";
 
@@ -20,13 +19,11 @@ export default function NotesClient({ tag }: NotesClientProps) {
   const [searchInput, setSearchInput] = useState("");
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
-  const [isModalOpen, setIsModalOpen] = useState(false);
 
   const { data, isLoading, isError, error } = useQuery({
     queryKey: ["notes", tag ?? "all", search, page],
     queryFn: () => fetchNotes({ search, page, perPage: 12, tag }),
     placeholderData: (prev) => prev,
-    refetchOnMount: false,
   });
 
   const notes = data?.notes ?? [];
@@ -42,18 +39,17 @@ export default function NotesClient({ tag }: NotesClientProps) {
     debouncedSetSearch(value);
   };
 
-  const handleCloseModal = () => setIsModalOpen(false);
   const errorMessage =
     error instanceof Error ? error.message : "Something went wrong";
 
   return (
-    <>
+    <div className={css.app}>
       <header className={css.toolbar}>
         <SearchBox value={searchInput} onChange={handleSearch} />
         <Pagination page={page} totalPages={totalPages} onChange={setPage} />
-        <button className={css.button} onClick={() => setIsModalOpen(true)}>
+        <Link href="/notes/action/create" className={css.button}>
           Create note +
-        </button>
+        </Link>
       </header>
 
       {isLoading && <p>Loading, please wait...</p>}
@@ -61,12 +57,6 @@ export default function NotesClient({ tag }: NotesClientProps) {
       {!isLoading && !isError && notes.length === 0 && <p>No notes found</p>}
 
       {notes.length > 0 && <NoteList notes={notes} />}
-
-      {isModalOpen && (
-        <Modal onClose={handleCloseModal}>
-          <NoteForm onCancel={handleCloseModal} onSuccess={handleCloseModal} />
-        </Modal>
-      )}
-    </>
+    </div>
   );
 }

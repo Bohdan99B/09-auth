@@ -1,4 +1,4 @@
-import type { Note, NoteTag } from "@/types/note";
+import type { NewNote, Note, NoteTag } from "@/types/note";
 import { apiClient } from "./client";
 
 export interface FetchNotesParams {
@@ -14,11 +14,7 @@ export interface FetchNotesResponse {
   currentPage: number;
 }
 
-export interface CreateNoteParams {
-  title: string;
-  content: string;
-  tag: NoteTag;
-}
+export type CreateNoteParams = NewNote;
 
 export async function fetchNotes(
   params: FetchNotesParams = {}
