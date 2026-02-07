@@ -23,4 +23,4 @@ export interface NewNote {
   tag: NoteTag;
 }
 
-export interface NoteDraft extends NewNote {}
+export type NoteDraft = NewNote;

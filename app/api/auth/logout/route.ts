@@ -5,9 +5,9 @@ import { isAxiosError } from 'axios';
 import { logErrorResponse } from '../../_utils/utils';
 
 export async function POST() {
-  const cookieStore = await cookies();
-
   try {
+    const cookieStore = await cookies();
+
     const accessToken = cookieStore.get('accessToken')?.value;
     const refreshToken = cookieStore.get('refreshToken')?.value;
 
@@ -16,21 +16,20 @@ export async function POST() {
         Cookie: `accessToken=${accessToken}; refreshToken=${refreshToken}`,
       },
     });
+
+    cookieStore.delete('accessToken');
+    cookieStore.delete('refreshToken');
+
+    return NextResponse.json({ message: 'Logged out successfully' }, { status: 200 });
   } catch (error) {
     if (isAxiosError(error)) {
       logErrorResponse(error.response?.data);
-      // We still clear local auth cookies to avoid redirect loops on stale tokens.
-      cookieStore.delete('accessToken');
-      cookieStore.delete('refreshToken');
-      return NextResponse.json({ message: 'Logged out locally' }, { status: 200 });
+      return NextResponse.json(
+        { error: error.message, response: error.response?.data },
+        { status: error.status }
+      );
     }
     logErrorResponse({ message: (error as Error).message });
-    cookieStore.delete('accessToken');
-    cookieStore.delete('refreshToken');
-    return NextResponse.json({ message: 'Logged out locally' }, { status: 200 });
+    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }
-
-  cookieStore.delete('accessToken');
-  cookieStore.delete('refreshToken');
-  return NextResponse.json({ message: 'Logged out successfully' }, { status: 200 });
 }

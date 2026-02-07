@@ -7,7 +7,7 @@ function matchesRoute(pathname: string, route: string) {
   return pathname === route || pathname.startsWith(`${route}/`);
 }
 
-function isUserPayload(payload: unknown): boolean {
+function isSessionUser(payload: unknown): boolean {
   if (!payload || typeof payload !== 'object') {
     return false;
   }
@@ -35,7 +35,7 @@ async function hasValidSession(request: NextRequest): Promise<boolean> {
     }
 
     const data: unknown = await response.json();
-    return isUserPayload(data);
+    return isSessionUser(data);
   } catch {
     return false;
   }
@@ -56,7 +56,7 @@ export async function proxy(request: NextRequest) {
     return NextResponse.redirect(new URL('/sign-in', request.url));
   }
 
-  if (isAuthRoute && hasAccessToken) {
+  if (isAuthRoute && canAccessPrivate) {
     const authenticated = await hasValidSession(request);
 
     if (authenticated) {

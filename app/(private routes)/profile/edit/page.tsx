@@ -1,6 +1,6 @@
 'use client';
 
-import { FormEvent, useEffect, useState } from 'react';
+import { FormEvent, useState } from 'react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { useMutation, useQuery } from '@tanstack/react-query';
@@ -11,19 +11,13 @@ import css from './EditProfilePage.module.css';
 export default function EditProfilePage() {
   const router = useRouter();
   const setUser = useAuthStore(state => state.setUser);
-  const [username, setUsername] = useState('');
+  const [username, setUsername] = useState<string | null>(null);
   const [error, setError] = useState('');
 
   const { data: user, isLoading } = useQuery({
     queryKey: ['me'],
     queryFn: getMe,
   });
-
-  useEffect(() => {
-    if (user) {
-      setUsername(user.username);
-    }
-  }, [user]);
 
   const mutation = useMutation({
     mutationFn: updateMe,
@@ -40,7 +34,7 @@ export default function EditProfilePage() {
     event.preventDefault();
     setError('');
     try {
-      await mutation.mutateAsync({ username: username.trim() });
+      await mutation.mutateAsync({ username: (username ?? user?.username ?? '').trim() });
     } catch {
       return;
     }
@@ -73,7 +67,7 @@ export default function EditProfilePage() {
               id="username"
               type="text"
               className={css.input}
-              value={username}
+              value={username ?? user.username}
               onChange={event => setUsername(event.target.value)}
             />
           </div>

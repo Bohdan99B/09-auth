@@ -2,7 +2,7 @@
 
 import { ReactNode, useEffect, useState } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
-import { checkSession, logout } from '@/lib/api/clientApi';
+import { checkSession, getMe, logout } from '@/lib/api/clientApi';
 import { useAuthStore } from '@/lib/store/authStore';
 import type { User } from '@/types/user';
 
@@ -72,6 +72,28 @@ export default function AuthProvider({ children }: AuthProviderProps) {
           }
 
           return;
+        }
+
+        try {
+          const me = await getMe();
+
+          if (isCancelled) {
+            return;
+          }
+
+          const normalizedMe = normalizeUserPayload(me);
+
+          if (normalizedMe) {
+            setUser(normalizedMe);
+
+            if (isAuthRoute) {
+              router.replace('/profile');
+            }
+
+            return;
+          }
+        } catch {
+          // noop
         }
 
         clearIsAuthenticated();
