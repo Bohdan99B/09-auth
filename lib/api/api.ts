@@ -1,6 +1,13 @@
 import axios from 'axios';
 
-const baseURL = `${process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3000'}/api`;
+const isBrowser = typeof window !== 'undefined';
+
+const origin = isBrowser
+  ? window.location.origin
+  : process.env.NEXT_PUBLIC_API_URL
+    ?? (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3000');
+
+const baseURL = `${origin}/api`;
 
 export const api = axios.create({
   baseURL,
