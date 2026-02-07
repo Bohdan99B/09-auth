@@ -14,15 +14,9 @@ function isUserPayload(payload: unknown): boolean {
 
   const value = payload as {
     email?: unknown;
-    username?: unknown;
-    avatar?: unknown;
   };
 
-  return (
-    typeof value.email === 'string' &&
-    typeof value.username === 'string' &&
-    typeof value.avatar === 'string'
-  );
+  return typeof value.email === 'string';
 }
 
 async function hasValidSession(request: NextRequest): Promise<boolean> {
