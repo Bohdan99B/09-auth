@@ -1,9 +1,10 @@
 'use client';
 
-import { ReactNode, useEffect, useMemo, useState } from 'react';
+import { ReactNode, useEffect, useState } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
-import { checkSession, logout } from '@/lib/api/clientApi';
+import { checkSession, getMe, logout } from '@/lib/api/clientApi';
 import { useAuthStore } from '@/lib/store/authStore';
+import type { User } from '@/types/user';
 
 interface AuthProviderProps {
   children: ReactNode;
@@ -11,6 +12,20 @@ interface AuthProviderProps {
 
 const PRIVATE_ROUTES = ['/profile', '/notes'];
 const AUTH_ROUTES = ['/sign-in', '/sign-up'];
+
+function isUserPayload(payload: unknown): payload is User {
+  if (!payload || typeof payload !== 'object') {
+    return false;
+  }
+
+  const value = payload as Partial<User>;
+
+  return (
+    typeof value.email === 'string' &&
+    typeof value.username === 'string' &&
+    typeof value.avatar === 'string'
+  );
+}
 
 export default function AuthProvider({ children }: AuthProviderProps) {
   const pathname = usePathname();
@@ -22,14 +37,10 @@ export default function AuthProvider({ children }: AuthProviderProps) {
   );
   const [isChecking, setIsChecking] = useState(true);
 
-  const isPrivateRoute = useMemo(
-    () =>
-      PRIVATE_ROUTES.some(
-        route => pathname === route || pathname.startsWith(`${route}/`),
-      ),
-    [pathname],
+  const isPrivateRoute = PRIVATE_ROUTES.some(
+    route => pathname === route || pathname.startsWith(`${route}/`),
   );
-  const isAuthRoute = useMemo(() => AUTH_ROUTES.includes(pathname), [pathname]);
+  const isAuthRoute = AUTH_ROUTES.includes(pathname);
 
   useEffect(() => {
     let isCancelled = false;
@@ -38,20 +49,40 @@ export default function AuthProvider({ children }: AuthProviderProps) {
       setIsChecking(true);
 
       try {
-        const user = await checkSession();
+        const sessionData = await checkSession();
 
         if (isCancelled) {
           return;
         }
 
-        if (user) {
-          setUser(user);
+        if (isUserPayload(sessionData)) {
+          setUser(sessionData);
 
           if (isAuthRoute) {
             router.replace('/profile');
           }
 
           return;
+        }
+
+        try {
+          const me = await getMe();
+
+          if (isCancelled) {
+            return;
+          }
+
+          if (isUserPayload(me)) {
+            setUser(me);
+
+            if (isAuthRoute) {
+              router.replace('/profile');
+            }
+
+            return;
+          }
+        } catch {
+          // noop
         }
 
         clearIsAuthenticated();
