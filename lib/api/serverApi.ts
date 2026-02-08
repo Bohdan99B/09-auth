@@ -2,6 +2,7 @@ import { api } from '@/lib/api/api';
 import type { FetchNotesParams, FetchNotesResponse } from '@/lib/api/clientApi';
 import type { Note } from '@/types/note';
 import type { User } from '@/types/user';
+import type { AxiosResponse } from 'axios';
 
 interface ServerRequestConfig {
   cookie: string;
@@ -46,12 +47,10 @@ export async function getMe(config: ServerRequestConfig): Promise<User> {
 
 export async function checkSession(
   config: ServerRequestConfig,
-): Promise<User | null> {
-  const response = await api.get<User | null>('/auth/session', {
+): Promise<AxiosResponse<{ success: boolean }>> {
+  return api.get<{ success: boolean }>('/auth/session', {
     headers: {
       Cookie: config.cookie,
     },
   });
-
-  return response.data;
 }

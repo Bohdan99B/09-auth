@@ -1,16 +1,23 @@
 'use client';
 
-import { useParams } from 'next/navigation';
+import { useRouter } from 'next/navigation';
+import Modal from '@/components/Modal/Modal';
 import NotePreview from '@/components/NotePreview/NotePreview';
 
-export default function NotePreviewClient() {
-  const params = useParams();
-  const rawId = params?.id;
-  const noteId = Array.isArray(rawId) ? rawId[0] : rawId;
+interface NotePreviewClientProps {
+  noteId: string;
+}
+
+export default function NotePreviewClient({ noteId }: NotePreviewClientProps) {
+  const router = useRouter();
 
   if (!noteId) {
     return null;
   }
 
-  return <NotePreview noteId={noteId} />;
+  return (
+    <Modal onClose={() => router.back()}>
+      <NotePreview noteId={noteId} />
+    </Modal>
+  );
 }
